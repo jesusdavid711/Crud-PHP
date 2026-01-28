@@ -15,3 +15,13 @@ Route::prefix('productos')->name('productos.')->group(function () {
     Route::put('/{id}', [ProductosController::class, 'update'])->name('update');
     Route::delete('/{id}', [ProductosController::class, 'remove'])->name('remove');
 });
+
+Route::middleware([
+    'auth:sanctum',
+    config('jetstream.auth_session'),
+    'verified',
+])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+});

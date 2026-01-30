@@ -8,6 +8,8 @@ use App\Http\Requests\StoreProductoRequest;
 use App\Http\Requests\UpdateProductoRequest;
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class ProductosController extends Controller
 {
@@ -16,7 +18,17 @@ class ProductosController extends Controller
      */
     public function index()
     {
-        $productos = Producto::latest()->paginate(10);
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if ($user->isAdmin()) {
+            // Admin sees all products with owner information
+            $productos = Producto::with('user')->latest()->paginate(10);
+        } else {
+            // Regular user sees only their own products
+            $productos = $user->productos()->latest()->paginate(10);
+        }
+
         return view('productos.index', compact('productos'));
     }
 
@@ -33,11 +45,14 @@ class ProductosController extends Controller
      */
     public function store(StoreProductoRequest $request)
     {
-        Producto::create($request->validated());
+        $data = $request->validated();
+        $data['user_id'] = Auth::id();
+
+        Producto::create($data);
 
         return redirect()
             ->route('productos.index')
-            ->with('success', 'Producto creado exitosamente.');
+            ->with('success', 'Product created successfully.');
     }
 
     /**
@@ -45,7 +60,12 @@ class ProductosController extends Controller
      */
     public function show($id)
     {
-        $producto = Producto::findOrFail($id);
+        $producto = $this->getProductoWithAuthorization($id);
+
+        if (!$producto) {
+            abort(Response::HTTP_FORBIDDEN, 'You do not have permission to view this product.');
+        }
+
         return view('productos.show', compact('producto'));
     }
 
@@ -54,7 +74,12 @@ class ProductosController extends Controller
      */
     public function edit($id)
     {
-        $producto = Producto::findOrFail($id);
+        $producto = $this->getProductoWithAuthorization($id);
+
+        if (!$producto) {
+            abort(Response::HTTP_FORBIDDEN, 'You do not have permission to edit this product.');
+        }
+
         return view('productos.edit', compact('producto'));
     }
 
@@ -63,12 +88,17 @@ class ProductosController extends Controller
      */
     public function update(UpdateProductoRequest $request, $id)
     {
-        $producto = Producto::findOrFail($id);
+        $producto = $this->getProductoWithAuthorization($id);
+
+        if (!$producto) {
+            abort(Response::HTTP_FORBIDDEN, 'You do not have permission to update this product.');
+        }
+
         $producto->update($request->validated());
 
         return redirect()
             ->route('productos.index')
-            ->with('success', 'Producto actualizado exitosamente.');
+            ->with('success', 'Product updated successfully.');
     }
 
     /**
@@ -76,11 +106,43 @@ class ProductosController extends Controller
      */
     public function remove($id)
     {
-        $producto = Producto::findOrFail($id);
+        $producto = $this->getProductoWithAuthorization($id);
+
+        if (!$producto) {
+            abort(Response::HTTP_FORBIDDEN, 'You do not have permission to delete this product.');
+        }
+
         $producto->delete();
 
         return redirect()
             ->route('productos.index')
-            ->with('success', 'Producto eliminado exitosamente.');
+            ->with('success', 'Product deleted successfully.');
+    }
+
+    /**
+     * Get product if user has authorization.
+     * Admin can access any product, regular user only their own.
+     */
+    private function getProductoWithAuthorization($id): ?Producto
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        $producto = Producto::find($id);
+
+        if (!$producto) {
+            abort(Response::HTTP_NOT_FOUND, 'Product not found.');
+        }
+
+        // Admin can access any product
+        if ($user->isAdmin()) {
+            return $producto;
+        }
+
+        // Regular user can only access their own products
+        if ($producto->user_id === $user->id) {
+            return $producto;
+        }
+
+        return null;
     }
 }

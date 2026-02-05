@@ -89,7 +89,7 @@ class ProductoTest extends TestCase
 
         $producto = Producto::where('nombre', 'Test Product')->first();
         $this->assertNotNull($producto->imagen);
-        Storage::disk('public')->assertExists($producto->imagen);
+        $this->assertTrue(Storage::disk('public')->exists($producto->imagen));
     }
 
     /**

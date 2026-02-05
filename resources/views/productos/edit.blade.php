@@ -8,9 +8,30 @@
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <form action="{{ route('productos.update', $producto->id) }}" method="POST">
+                <form action="{{ route('productos.update', $producto->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
+
+                    <!-- Categoría -->
+                    <div class="mb-6">
+                        <label for="category_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Categoría <span class="text-red-500">*</span>
+                        </label>
+                        <select name="category_id"
+                            id="category_id"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition @error('category_id') border-red-500 @enderror"
+                            required>
+                            <option value="">Seleccione una categoría</option>
+                            @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ old('category_id', $producto->category_id) == $category->id ? 'selected' : '' }}>
+                                {{ $category->nombre }}
+                            </option>
+                            @endforeach
+                        </select>
+                        @error('category_id')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                    </div>
 
                     <!-- Nombre -->
                     <div class="mb-6">
@@ -89,14 +110,22 @@
                     <!-- Imagen -->
                     <div class="mb-6">
                         <label for="imagen" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            URL de Imagen
+                            Imagen del Producto
                         </label>
-                        <input type="url"
+
+                        @if($producto->imagen)
+                        <div class="mb-3">
+                            <p class="text-xs text-gray-500 mb-1">Imagen actual:</p>
+                            <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}" class="h-20 w-20 object-cover rounded-lg shadow">
+                        </div>
+                        @endif
+
+                        <input type="file"
                             name="imagen"
                             id="imagen"
-                            value="{{ old('imagen', $producto->imagen) }}"
-                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition @error('imagen') border-red-500 @enderror"
-                            placeholder="https://ejemplo.com/imagen.jpg">
+                            accept="image/*"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition @error('imagen') border-red-500 @enderror">
+                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Deje vacío para mantener la imagen actual. Máx 2MB.</p>
                         @error('imagen')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror

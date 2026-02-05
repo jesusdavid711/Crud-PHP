@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductoRequest;
 use App\Http\Requests\UpdateProductoRequest;
+use App\Models\Category;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,7 +38,8 @@ class ProductosController extends Controller
      */
     public function create()
     {
-        return view('productos.create');
+        $categories = Category::all();
+        return view('productos.create', compact('categories'));
     }
 
     /**
@@ -47,6 +49,10 @@ class ProductosController extends Controller
     {
         $data = $request->validated();
         $data['user_id'] = Auth::id();
+
+        if ($request->hasFile('imagen')) {
+            $data['imagen'] = $request->file('imagen')->store('productos', 'public');
+        }
 
         Producto::create($data);
 
@@ -80,7 +86,8 @@ class ProductosController extends Controller
             abort(Response::HTTP_FORBIDDEN, 'You do not have permission to edit this product.');
         }
 
-        return view('productos.edit', compact('producto'));
+        $categories = Category::all();
+        return view('productos.edit', compact('producto', 'categories'));
     }
 
     /**
@@ -94,7 +101,17 @@ class ProductosController extends Controller
             abort(Response::HTTP_FORBIDDEN, 'You do not have permission to update this product.');
         }
 
-        $producto->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('imagen')) {
+            // Delete old image if exists
+            if ($producto->imagen) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($producto->imagen);
+            }
+            $data['imagen'] = $request->file('imagen')->store('productos', 'public');
+        }
+
+        $producto->update($data);
 
         return redirect()
             ->route('productos.index')

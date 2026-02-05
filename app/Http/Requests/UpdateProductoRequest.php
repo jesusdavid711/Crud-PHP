@@ -24,11 +24,12 @@ class UpdateProductoRequest extends FormRequest
         $productoId = $this->route('id');
 
         return [
+            'category_id' => 'required|exists:categories,id',
             'nombre' => "required|string|max:255|unique:productos,nombre,{$productoId}",
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'imagen' => 'nullable|url',
+            'imagen' => 'nullable|image|max:2048',
         ];
     }
 
@@ -40,6 +41,8 @@ class UpdateProductoRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'category_id.required' => 'La categoría es obligatoria.',
+            'category_id.exists' => 'La categoría seleccionada no es válida.',
             'nombre.required' => 'El nombre del producto es obligatorio.',
             'nombre.unique' => 'Ya existe un producto con ese nombre.',
             'nombre.max' => 'El nombre no puede tener más de 255 caracteres.',
@@ -49,7 +52,8 @@ class UpdateProductoRequest extends FormRequest
             'stock.required' => 'El stock es obligatorio.',
             'stock.integer' => 'El stock debe ser un número entero.',
             'stock.min' => 'El stock debe ser mayor o igual a 0.',
-            'imagen.url' => 'La imagen debe ser una URL válida.',
+            'imagen.image' => 'El archivo debe ser una imagen.',
+            'imagen.max' => 'La imagen no puede pesar más de 2MB.',
         ];
     }
 }

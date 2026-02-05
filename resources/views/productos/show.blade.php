@@ -23,7 +23,7 @@
                     <!-- Image Section -->
                     <div class="md:w-1/3 bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-8">
                         @if($producto->imagen)
-                        <img src="{{ $producto->imagen }}" alt="{{ $producto->nombre }}" class="max-w-full h-auto rounded-lg shadow-md">
+                        <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}" class="max-w-full h-auto rounded-lg shadow-md">
                         @else
                         <div class="text-center">
                             <svg class="mx-auto h-32 w-32 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,6 +38,11 @@
                     <div class="md:w-2/3 p-8">
                         <div class="mb-6">
                             <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $producto->nombre }}</h2>
+                            <div class="mb-4">
+                                <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 uppercase">
+                                    {{ $producto->category->nombre ?? 'Sin categoría' }}
+                                </span>
+                            </div>
                             <div class="flex items-center space-x-4">
                                 <span class="text-3xl font-bold text-indigo-600">${{ number_format($producto->precio, 2) }}</span>
                                 <span class="px-3 py-1 text-sm font-semibold rounded-full {{ $producto->stock > 10 ? 'bg-green-100 text-green-800' : ($producto->stock > 0 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">

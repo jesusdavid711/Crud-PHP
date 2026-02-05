@@ -23,7 +23,7 @@
                     <!-- Image Section -->
                     <div class="md:w-1/3 bg-gray-100 dark:bg-gray-700 flex items-center justify-center p-8">
                         @if($producto->imagen)
-                        <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}" class="max-w-full h-auto rounded-lg shadow-md">
+                        <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}" class="max-w-full h-auto rounded-lg shadow-md border-2 border-indigo-200 dark:border-indigo-900/50">
                         @else
                         <div class="text-center">
                             <svg class="mx-auto h-32 w-32 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
